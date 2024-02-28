@@ -1,0 +1,5 @@
+sd_ngsild_adapter:
+  ros__parameters:
+    tractor_position_topic: "/sd_tractor/position"
+    mission_topic: "/sd_tractor/mission"
+    feedback_sender_frequency : 10.0

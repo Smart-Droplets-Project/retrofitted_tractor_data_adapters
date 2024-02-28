@@ -17,7 +17,12 @@ endif()
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
-find_package(rclcpp REQUIRED)
+find_package(rclpy REQUIRED)
+find_package(geometry_msgs REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(nav2_msgs REQUIRED)
+find_package(nav_msgs REQUIRED)
+find_package(geographic_msgs REQUIRED)
 
 # Python executables
 set(PYTHON_EXECUTABLES
@@ -33,8 +38,8 @@ foreach(PYTHON_EXECUTABLE ${PYTHON_EXECUTABLES})
 endforeach()
 
 install(DIRECTORY
-  # config
-  # launch
+  config
+  launch
   DESTINATION share/${PROJECT_NAME}/
 )
 

@@ -3,7 +3,7 @@
 <package format="3">
   <name>retrofittedTractorDataAdapters</name>
   <version>0.0.0</version>
-  <description>Package for ROS2 <> NGSI-LD adapter</description>
+  <description>Package for ROS2 to/from NGSI-LD adapter</description>
   <maintainer email="pau.reverte@eurecat.org">Pau Reverté</maintainer>
   <license>TODO: License declaration</license>
 
@@ -13,7 +13,7 @@
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
-  
+
   <export>
     <build_type>ament_cmake</build_type>
   </export>

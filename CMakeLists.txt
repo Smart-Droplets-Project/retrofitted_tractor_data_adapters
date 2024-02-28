@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(smart_droplets_bringup)
+project(retrofittedTractorDataAdapters)
 
 # Default to C99
 if(NOT CMAKE_C_STANDARD)
@@ -20,22 +20,19 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 
 install(DIRECTORY
-#  config
+  config
   launch
-#  rviz
-#  scripts
-#  test
   DESTINATION share/${PROJECT_NAME}/
 )
 
-#add_executable(r4c_carob_gnss_init src/r4c_carob_gnss_init.cpp)
-## target_compile_definitions(r4c_carob_gnss_init PRIVATE <ANY_DEFINITION>)
-#target_include_directories(r4c_carob_gnss_init PRIVATE include)
-#target_compile_options(r4c_carob_gnss_init PRIVATE -Wall -Wconversion -Wextra -Wpedantic) # -Werror
-#ament_target_dependencies(r4c_carob_gnss_init rclcpp r4c_msgs sensor_msgs geographic_msgs robot_localization)
+#add_executable(cpp_code src/cpp_code.cpp)
+## target_compile_definitions(cpp_code PRIVATE <ANY_DEFINITION>)
+#target_include_directories(cpp_code PRIVATE include)
+#target_compile_options(cpp_code PRIVATE -Wall -Wconversion -Wextra -Wpedantic) # -Werror
+#ament_target_dependencies(cpp_code rclcpp)
 
 #install(TARGETS
-#  r4c_carob_gnss_init
+#  cpp_code
 #  DESTINATION lib/${PROJECT_NAME})
 
 if(BUILD_TESTING)

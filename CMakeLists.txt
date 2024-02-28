@@ -19,11 +19,31 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 
+# Python executables
+set(PYTHON_EXECUTABLES
+    src/sd_ngsild_adapter.py
+)
+
+# Install Python executables
+foreach(PYTHON_EXECUTABLE ${PYTHON_EXECUTABLES})
+    get_filename_component(EXEC_NAME ${PYTHON_EXECUTABLE} NAME_WE)
+    install(PROGRAMS ${PYTHON_EXECUTABLE}
+            DESTINATION lib/${PROJECT_NAME}
+            RENAME ${EXEC_NAME})
+endforeach()
+
 install(DIRECTORY
-  config
-  launch
+  # config
+  # launch
   DESTINATION share/${PROJECT_NAME}/
 )
+
+install(DIRECTORY
+    src
+    DESTINATION lib/${PROJECT_NAME}
+    FILES_MATCHING PATTERN "*.py"
+)
+
 
 #add_executable(cpp_code src/cpp_code.cpp)
 ## target_compile_definitions(cpp_code PRIVATE <ANY_DEFINITION>)

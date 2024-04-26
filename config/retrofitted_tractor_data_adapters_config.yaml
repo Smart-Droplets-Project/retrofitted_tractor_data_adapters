@@ -2,6 +2,14 @@ ros2_ngsild_client:
   ros__parameters:
     state_message_topic: "/sd_tractor/status"
     command_message_topic: "/sd_tractor/mission"
+
 ros2_to_sdm:
   ros__parameters:
-    
+    robot_id: "eut-sd-01"
+    state_message_topic: "/sd_tractor/status"
+    command_message_topic: "/sd_tractor/mission"
+
+sdm_to_ros2:
+  ros__parameters:
+    state_message_topic: "/sd_tractor/status"
+    command_message_topic: "/sd_tractor/mission"

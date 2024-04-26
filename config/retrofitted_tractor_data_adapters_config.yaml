@@ -2,3 +2,6 @@ ros2_ngsild_client:
   ros__parameters:
     state_message_topic: "/sd_tractor/status"
     command_message_topic: "/sd_tractor/mission"
+ros2_to_sdm:
+  ros__parameters:
+    

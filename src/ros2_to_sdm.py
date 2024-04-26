@@ -2,34 +2,35 @@
 
 import rclpy
 from rclpy.node import Node
-from retrofitted_tractor_data_adapters.msg import CommandMessage, StateMessage, GeographicPose
 from rclpy.parameter import Parameter
 from geometry_msgs.msg import Quaternion
 from std_msgs.msg import Bool, Float32, Header
 
 import json
+import os
 import math
 from math import atan2, asin
 from datetime import datetime
+
+from retrofitted_tractor_data_adapters.msg import CommandMessage, StateMessage, GeographicPose
+from retrofitted_tractor_data_adapters.srv import NGSILDFile
 
 class ROS2ToSDM(Node):
     def __init__(self):
         super().__init__('ros2_to_sdm')
 
+        self.package_path = os.path.dirname(__file__)
+
+        self.json_folder_path = os.path.join(self.package_path, '../json')
+
         self.declare_parameter('robot_id', 'eutrob:01')
-        self.declare_parameter('command_message_topic', '/sdm/command_message')
-        self.declare_parameter('state_message_topic', '/sdm/state_message')
+        self.declare_parameter('state_message_topic', '/state_message')
+        self.declare_parameter('send_ngsild_message_srv_name', '/send_ngsild_message')
 
         self.robot_id = self.get_parameter('robot_id').value
         command_message_topic = self.get_parameter('command_message_topic').value
         state_message_topic = self.get_parameter('state_message_topic').value
-
-        self.command_message_sub = self.create_subscription(
-            CommandMessage,
-            command_message_topic,
-            self.command_message_callback,
-            10
-        )
+        send_ngsild_message_srv_name = self.get_parameter('send_ngsild_message_srv_name').value
 
         self.state_message_sub = self.create_subscription(
             StateMessage,
@@ -38,15 +39,14 @@ class ROS2ToSDM(Node):
             10
         )
 
-    def command_message_callback(self, msg):
-        json_data = self.command_message_to_json(msg)
-        json_str = json.dumps(json_data, indent=4)
-        self.get_logger().info(f"Received Command Message:\n{json_str}")
+        self.send_ngsild_message_srv_name = self.create_client(NGSILDFile, self.convert_sdm_to_ros2_srv_name)
+        while not self.send_ngsild_message_srv_name.wait_for_service(timeout_sec=1.0):
+            self.get_logger().warn('[ROS2ToSDM] Service not available, waiting again...')
+
+        self.get_logger().info('[ROS2ToSDM] Initialized')
     
     def state_message_callback(self, msg):
         json_data = self.state_message_to_json(msg)
-        json_str = json.dumps(json_data, indent=4)
-        self.get_logger().info(f"Received State Message:\n{json_str}")
     
     def quaternion_to_euler(self, quaternion):
         roll = atan2(2 * (quaternion.w * quaternion.x + quaternion.y * quaternion.z),1 - 2 * (quaternion.x ** 2 + quaternion.y ** 2))
@@ -54,40 +54,10 @@ class ROS2ToSDM(Node):
         yaw = atan2(2 * (quaternion.w * quaternion.z + quaternion.x * quaternion.y),1 - 2 * (quaternion.y ** 2 + quaternion.z ** 2))
         return roll, pitch, yaw
     
-    def command_message_to_json(self, command_message_msg):
-        
-        data = {}
-
-        data['id'] = self.robot_id
-        data['command'] = command_message_msg.command
-        data['commandTime'] = datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "+09:00"
-        data['type'] = command_message_msg.type
-
-        waypoints_data = []
-        for waypoint in command_message_msg.waypoints:
-            waypoint_data = {
-                'geographicPoint': {
-                    'latitude': waypoint.geographic_point.latitude,
-                    'longitude': waypoint.geographic_point.longitude,
-                    'altitude': waypoint.geographic_point.altitude
-                }
-            }
-
-            if waypoint.orientation_3d:
-                quaternion_msg = waypoint.orientation_3d
-                roll, pitch, yaw = self.quaternion_to_euler(quaternion_msg)
-                waypoint_data['orientation3D'] = {
-                    'roll': roll,
-                    'pitch': pitch,
-                    'yaw': yaw
-                }
-
-            waypoints_data.append(waypoint_data)
-
-        data['waypoints'] = waypoints_data
-
-        return data
-    
+    def save_data_to_json(self, filepath, data):
+        with open(filepath, 'w') as json_file:
+            json.dump(data, json_file, indent=4)
+       
     def state_message_to_json(self, state_message_msg):
         
         data = {}
@@ -138,6 +108,23 @@ class ROS2ToSDM(Node):
         data['battery'] = {
         'remainingPercentage': state_message_msg.battery
         }
+
+        filename = "state_message.json"
+        filepath = os.path.join(self.json_folder_path, filename)
+        self.save_data_to_json(filepath, data)
+        self.get_logger().debug('[ROS2ToSDM] Stored JSON file')
+
+        request = NGSILDFile.Request()
+        request.message_type = "StateMessage"
+        request.file_path = filepath
+        
+        future = self.send_ngsild_message_srv_name.call_async(request)
+        rclpy.spin_until_future_complete(self, future)
+
+        if future.result() is not None:
+            self.get_logger().debug("'[ROS2ToSDM] Sent NGSILD message from ROS2")
+        else:
+            self.get_logger().warn(" '[ROS2ToSDM] NGSILD message from ROS2 transmission failed!")
 
         return data
 

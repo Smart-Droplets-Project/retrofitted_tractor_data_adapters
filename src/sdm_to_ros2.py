@@ -2,12 +2,12 @@
 
 import rclpy
 from rclpy.node import Node
-from retrofitted_tractor_data_adapters.msg import CommandMessage, StateMessage, GeographicPose
 from rclpy.parameter import Parameter
 from geometry_msgs.msg import Quaternion
 from std_msgs.msg import Bool, Float32, Header
 
-from retrofitted_tractor_data_adapters.srv import ToROS2
+from retrofitted_tractor_data_adapters.msg import CommandMessage, StateMessage, GeographicPose
+from retrofitted_tractor_data_adapters.srv import NGSILDFile
 
 import json
 import math
@@ -16,13 +16,15 @@ class SDMToROS2(Node):
     def __init__(self):
         super().__init__('sdm_to_ros2')
 
-        self.declare_parameter('command_message_topic', '/sdm/command_message')
-        self.declare_parameter('state_message_topic', '/sdm/state_message')
+        self.declare_parameter('command_message_topic', '/command_message')
+        self.declare_parameter('state_message_topic', '/state_message')
+        self.declare_parameter('convert_sdm_to_ros2_srv_name', '/ngsild_to_ros2')
 
         command_message_topic = self.get_parameter('command_message_topic').value
         state_message_topic = self.get_parameter('state_message_topic').value
+        convert_sdm_to_ros2_srv_name = self.get_parameter('convert_sdm_to_ros2_srv_name').value
 
-        self.to_ros2_service = self.create_service(ToROS2, 'to_ros2', self.translate_to_ros2_callback)
+        self.to_ros2_service = self.create_service(NGSILDFile, convert_sdm_to_ros2_srv_name, self.translate_to_ros2_callback)
 
         self.command_message_publisher = self.create_publisher(
             CommandMessage,
@@ -35,6 +37,8 @@ class SDMToROS2(Node):
             state_message_topic,
             10
         )  
+
+        self.get_logger().info('[SDMToROS2] Initialized')
 
     def translate_to_ros2_callback(self, request, response):
         try:
@@ -51,10 +55,10 @@ class SDMToROS2(Node):
                 self.state_message_to_ros2(data)
                 response.success = True
             else:
-                self.get_logger().warn('Unsupported message type: %s', request.message_type)
+                self.get_logger().warn('[SDMToROS2] Unsupported message type: %s', request.message_type)
                 response.success = False
         except Exception as e:
-            self.get_logger().error('Error while translating JSON: %s', str(e))
+            self.get_logger().error('[SDMToROS2] Error while translating JSON: %s', str(e))
             response.success = False
 
         return response

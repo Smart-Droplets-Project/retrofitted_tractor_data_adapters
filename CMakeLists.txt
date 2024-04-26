@@ -31,7 +31,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/GeographicPose.msg"
   "msg/StateMessage.msg"
   "msg/CommandMessage.msg"
-  "srv/ToROS2.srv"
+  "srv/NGSILDFile.srv"
   DEPENDENCIES builtin_interfaces geometry_msgs geographic_msgs std_msgs 
  )
 

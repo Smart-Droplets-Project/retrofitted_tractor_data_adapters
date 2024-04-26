@@ -8,15 +8,11 @@ from std_msgs.msg import Float64
 import math
 from ngsildclient import Entity, Client, SubscriptionBuilder, SmartDataModels
 
+from retrofitted_tractor_data_adapters.msg import CommandMessage, StateMessage, GeographicPose
+from retrofitted_tractor_data_adapters.srv import NGSILDFile
+
 class ROS2NGSILDClient(Node):
-    
-    # Class variables
-    input_mission_ = GeoPath()
-    tractor_gnss_ = GeoPoseStamped()
-    tractor_map_pose_ = Pose()
-
-    
-
+       
     def __init__(self):
         super().__init__('ros2_ngsild_client')
 
@@ -26,69 +22,73 @@ class ROS2NGSILDClient(Node):
         self.declare_parameters(
             namespace='',
             parameters=[
-                ('tractor_position_topic', '/sd_tractor/position'),
-                ('mission_topic', '/sd_tractor/mission'),
+                ('state_message_topic', '/sd_tractor/state'),
+                ('send_ngsild_message_srv_name', '/send_ngsild_message'),
+                ('convert_sdm_to_ros2_srv_name', '/ngsild_to_ros2')
             ])
-        self.tractor_position_topic = self.get_parameter('tractor_position_topic').value
-        self.mission_topic = self.get_parameter('mission_topic').value
+        self.state_message_topic = self.get_parameter('state_message_topic').value
+        self.send_ngsild_message_srv_name = self.get_parameter('send_ngsild_message_srv_name').value
+        self.convert_sdm_to_ros2_srv_name = self.get_parameter('convert_sdm_to_ros2_srv_name').value
         
         # Create ROS publishers and subscribers
-        self.input_mission_publisher_ = self.create_publisher(GeoPath, self.mission_topic, 10)
-        self.tractor_position_subscriber_ = self.create_subscription(
-            GeoPoseStamped,
-            self.tractor_position_topic,
-            self.tractor_position_callback,
+        self.state_message_subscriber_ = self.create_subscription(
+            StateMessage,
+            self.state_message_topic,
+            self.state_message_callback,
             10)
+        
+        # Create service servers
+        self.send_ngsild_message_srv = self.create_service(NGSILDFile, self.send_ngsild_message_srv_name, self.send_ngsild_message_callback)
 
-        # Timer for feedback publishing
-        self.command_message_timer_ = self.create_timer(1, self.command_timer_callback)
-        self.state_message_timer_ = self.create_timer(5, self.state_timer_callback)
+        # Create service clients
+        self.convert_ngsild_to_ros2_srv = self.create_client(NGSILDFile, self.convert_sdm_to_ros2_srv_name)
+        while not self.convert_ngsild_to_ros2_srv.wait_for_service(timeout_sec=1.0):
+            self.get_logger().info('Service not available, waiting again...')
 
         # Initialized SmartDataModels messages
-        self.command_message_ = Entity("CommandMessage","MissionCommand")
+        self.command_message_ = Entity.load(f"https://smart-data-models.github.io/dataModel.AutonomousMobileRobot/CommandMessage/examples/example-geopoint.json")
         self.state_message_= Entity.load(f"https://smart-data-models.github.io/dataModel.Agrifood/AgriFarm/examples/example-normalized.jsonld")
-        self.state_message_.id = f'urn:ngsi-ld:StateMessage:Status-01'
+        
+        # Create subscription to CommandMessage entity
+        # self.create_command_message_subscription() -> has to callback self.command_message_callback()
 
         # Initialized variables
-        self.first_state_message_ = True
-
         self.get_logger().info('[ROS2_NGSILD_CLIENT] Initialized')
     
-    # def create_entity_subscription(self, entity):
-    #     with Client() as client:
-            
 
-    def input_mission_callback(self, msg):
-        self.get_logger().info('[ROS2_NGSILD_CLIENT] Received mission from broker')
-        # TBD: Transform from received NGSILD mission to ROS2 geographic_msgs::GeoPath 
-        # input_mission_ = convertFromNGSIDL()
-        self.input_mission_publisher_.publish(ROS2NGSILDClient.input_mission_)
+    def command_message_callback(self):
+        self.get_logger().info('[ROS2_NGSILD_CLIENT] Received CommandMessage from broker')
+        # TBD: Store received message in a json file
+        # command_message_file = client.get(....) 
+        request = NGSILDFile.Request()
+        request.message_type = "CommandMessage"
+        request.file_path = "path/to/command_message_file"
 
-    def tractor_position_callback(self, msg):
-        self.get_logger().debug('[ROS2_NGSILD_CLIENT] Tractor position cb')
-        # TBD by EUT: Get lat,lon and map positioning of tractor from it
-        # tractor_gnss_ = ...
-        # tractor_map_pose_ = ...
+        future = self.convert_ngsild_to_ros2_srv.call_async(request)
+        rclpy.spin_until_future_complete(self, future)
 
-    def command_timer_callback(self):
-        with Client() as client: 
-            try:
-                self.get_logger().debug('[ROS2_NGSILD_CLIENT] Requesting any CommandMessage in OCB')
-                # self.command_message_ = client.get("CommandMessage:Mission", ctx=)
-                # client.get(self.state_message_) 
-            except: 
-                self.get_logger().debug('[ROS2_NGSILD_CLIENT] There was no StateMessage in OCB')
-    
-    def state_timer_callback(self):
-        with Client() as client: 
-          try:
-              self.get_logger().warn('[ROS2_NGSILD_CLIENT] First StateMessage in OCB')
-              client.create(self.state_message_)    
-          except:
-              self.get_logger().warn('[ROS2_NGSILD_CLIENT] Updating StateMessage in OCB')
-              client.update(self.state_message_)
+        if future.result() is not None:
+            self.get_logger().debug("'[ROS2_NGSILD_CLIENT] Converted NGSILD to ROS2")
+        else:
+            self.get_logger().warn(" '[ROS2_NGSILD_CLIENT] NGSILD to ROS2 conversion failed!")
 
+    def send_ngsild_message_callback(self, request, response):
+        
+        if (request.message_type != "StateMessage"):
+          self.get_logger().warn("'[ROS2_NGSILD_CLIENT] Received wrong StateMessage!")
+          response.success = False
+          return response
+                
+        state_message_file_path = request.file_path
 
+        #TBD: From file path provided, load JSON and send it to broker 
+        # e = Entity.load(state_message_file_path)
+        # client.send(e)
+
+        self.get_logger().debug("'[ROS2_NGSILD_CLIENT] Sent StateMessage from JSON file")
+        response.success = True
+
+        return response
 
 def main():
     rclpy.init()

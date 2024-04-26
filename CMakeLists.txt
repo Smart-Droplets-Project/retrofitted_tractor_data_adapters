@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(retrofittedTractorDataAdapters)
+project(retrofitted_tractor_data_adapters)
 
 # Default to C99
 if(NOT CMAKE_C_STANDARD)

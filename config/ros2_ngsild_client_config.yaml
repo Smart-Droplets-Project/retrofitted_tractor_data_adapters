@@ -1,0 +1,4 @@
+ros2_ngsild_client:
+  ros__parameters:
+    tractor_position_topic: "/sd_tractor/position"
+    mission_topic: "/sd_tractor/mission"

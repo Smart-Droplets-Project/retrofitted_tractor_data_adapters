@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+
+<launch>
+
+  <arg name="ros2_ngsild_client_config_file" default="$(find-pkg-share retrofittedTractorDataAdapters)/config/ros2_ngsild_client_config.yaml"/>
+
+  <node pkg="retrofittedTractorDataAdapters" exec="ros2_ngsild_client" name="ros2_ngsild_client" output="screen" respawn="True">
+    <param from="$(var ros2_ngsild_client_config_file)"/>
+  </node>
+
+</launch>

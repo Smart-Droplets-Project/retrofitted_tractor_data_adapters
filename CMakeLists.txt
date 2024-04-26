@@ -26,7 +26,7 @@ find_package(geographic_msgs REQUIRED)
 
 # Python executables
 set(PYTHON_EXECUTABLES
-    src/sd_ngsild_adapter.py
+    src/ros2_ngsild_client.py
 )
 
 # Install Python executables

@@ -1,1 +1,3 @@
 # retrofitted_tractor_data_adapters
+
+![retrofitted_tractor_data_adapters diagram](assets/retrofitted_tractor_data_adapters_scheme.png)

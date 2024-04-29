@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(retrofittedTractorDataAdapters)
+project(retrofitted_tractor_data_adapters)
 
 # Default to C99
 if(NOT CMAKE_C_STANDARD)
@@ -17,13 +17,51 @@ endif()
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
-find_package(rclcpp REQUIRED)
+find_package(rclpy REQUIRED)
+find_package(geometry_msgs REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(nav2_msgs REQUIRED)
+find_package(nav_msgs REQUIRED)
+find_package(geographic_msgs REQUIRED)
+find_package(std_msgs REQUIRED)
+find_package(builtin_interfaces REQUIRED)
+find_package(rosidl_default_generators REQUIRED)
+
+rosidl_generate_interfaces(${PROJECT_NAME}
+  "msg/GeographicPose.msg"
+  "msg/StateMessage.msg"
+  "msg/CommandMessage.msg"
+  "srv/NGSILDFile.srv"
+  DEPENDENCIES builtin_interfaces geometry_msgs geographic_msgs std_msgs 
+ )
+
+# Python executables
+set(PYTHON_EXECUTABLES
+    src/ros2_ngsild_client.py
+    src/ros2_to_sdm.py
+    src/sdm_to_ros2.py
+)
+
+# Install Python executables
+foreach(PYTHON_EXECUTABLE ${PYTHON_EXECUTABLES})
+    get_filename_component(EXEC_NAME ${PYTHON_EXECUTABLE} NAME_WE)
+    install(PROGRAMS ${PYTHON_EXECUTABLE}
+            DESTINATION lib/${PROJECT_NAME}
+            RENAME ${EXEC_NAME})
+endforeach()
 
 install(DIRECTORY
   config
   launch
   DESTINATION share/${PROJECT_NAME}/
 )
+
+install(DIRECTORY
+    src
+    DESTINATION lib/${PROJECT_NAME}
+    FILES_MATCHING PATTERN "*.py"
+)
+
 
 #add_executable(cpp_code src/cpp_code.cpp)
 ## target_compile_definitions(cpp_code PRIVATE <ANY_DEFINITION>)

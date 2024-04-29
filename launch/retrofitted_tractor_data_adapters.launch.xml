@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+
+<launch>
+
+  <arg name="config_file" default="$(find-pkg-share retrofitted_tractor_data_adapters)/config/retrofitted_tractor_data_adapters_config.yaml"/>
+
+  <node pkg="retrofitted_tractor_data_adapters" exec="ros2_ngsild_client" name="ros2_ngsild_client" output="screen" respawn="True">
+    <param from="$(var config_file)"/>
+  </node>
+
+  <node pkg="retrofitted_tractor_data_adapters" exec="ros2_to_sdm" name="ros2_to_sdm" output="screen" respawn="True">
+    <param from="$(var config_file)"/>
+  </node>
+
+  <node pkg="retrofitted_tractor_data_adapters" exec="sdm_to_ros2" name="sdm_to_ros2" output="screen" respawn="True">
+    <param from="$(var config_file)"/>
+  </node>
+
+</launch>

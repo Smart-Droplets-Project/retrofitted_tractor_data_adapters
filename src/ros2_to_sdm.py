@@ -23,23 +23,19 @@ class ROS2ToSDM(Node):
 
         self.json_folder_path = os.path.join(self.package_path, '../json')
 
+        # Get parameters
         self.declare_parameter('robot_id', 'eutrob:01')
-        self.declare_parameter('state_message_topic', '/state_message')
-        self.declare_parameter('send_ngsild_message_srv_name', '/send_ngsild_message')
 
         self.robot_id = self.get_parameter('robot_id').value
-        command_message_topic = self.get_parameter('command_message_topic').value
-        state_message_topic = self.get_parameter('state_message_topic').value
-        send_ngsild_message_srv_name = self.get_parameter('send_ngsild_message_srv_name').value
 
         self.state_message_sub = self.create_subscription(
             StateMessage,
-            state_message_topic,
+            "/sd_tractor/status",
             self.state_message_callback,
             10
         )
 
-        self.send_ngsild_message_srv_name = self.create_client(NGSILDFile, self.convert_sdm_to_ros2_srv_name)
+        self.send_ngsild_message_srv_name = self.create_client(NGSILDFile, "/send_ngsild_message")
         while not self.send_ngsild_message_srv_name.wait_for_service(timeout_sec=1.0):
             self.get_logger().warn('[ROS2ToSDM] Service not available, waiting again...')
 

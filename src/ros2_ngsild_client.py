@@ -11,37 +11,24 @@ from ngsildclient import Entity, Client, SubscriptionBuilder, SmartDataModels
 from retrofitted_tractor_data_adapters.msg import CommandMessage, StateMessage, GeographicPose
 from retrofitted_tractor_data_adapters.srv import NGSILDFile
 
+import sd_data_adapter.models.agri_food as models
+from sd_data_adapter.client import DAClient
+from sd_data_adapter.api import upload
+
 class ROS2NGSILDClient(Node):
        
     def __init__(self):
         super().__init__('ros2_ngsild_client')
 
         self.AUTONOMOUS_MOBILE_ROBOT_CONTEXT = "https://raw.githubusercontent.com/smart-data-models/dataModel.AutonomousMobileRobot/master/context.jsonld"
-
-        #Get node parameters
-        self.declare_parameters(
-            namespace='',
-            parameters=[
-                ('state_message_topic', '/sd_tractor/state'),
-                ('send_ngsild_message_srv_name', '/send_ngsild_message'),
-                ('convert_sdm_to_ros2_srv_name', '/ngsild_to_ros2')
-            ])
-        self.state_message_topic = self.get_parameter('state_message_topic').value
-        self.send_ngsild_message_srv_name = self.get_parameter('send_ngsild_message_srv_name').value
-        self.convert_sdm_to_ros2_srv_name = self.get_parameter('convert_sdm_to_ros2_srv_name').value
-        
+      
         # Create ROS publishers and subscribers
-        self.state_message_subscriber_ = self.create_subscription(
-            StateMessage,
-            self.state_message_topic,
-            self.state_message_callback,
-            10)
         
         # Create service servers
-        self.send_ngsild_message_srv = self.create_service(NGSILDFile, self.send_ngsild_message_srv_name, self.send_ngsild_message_callback)
+        self.send_ngsild_message_srv = self.create_service(NGSILDFile, "/send_ngsild_message", self.send_ngsild_message_callback)
 
         # Create service clients
-        self.convert_ngsild_to_ros2_srv = self.create_client(NGSILDFile, self.convert_sdm_to_ros2_srv_name)
+        self.convert_ngsild_to_ros2_srv = self.create_client(NGSILDFile, "/sdm_to_ros2")
         while not self.convert_ngsild_to_ros2_srv.wait_for_service(timeout_sec=1.0):
             self.get_logger().info('Service not available, waiting again...')
 

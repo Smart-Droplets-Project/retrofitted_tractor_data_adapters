@@ -1,17 +1,9 @@
-ros2_ngsild_client:
-  ros__parameters:
-    state_message_topic: "/sd_tractor/status"
-    send_ngsild_message_srv_name:  "/send_ngsild_message" 
-    convert_sdm_to_ros2_srv_name:  "/sdm_to_ros2" 
+# ros2_ngsild_client:
+  # ros__parameters:
 
 ros2_to_sdm:
   ros__parameters:
-    robot_id: "eut-sd-01"
-    state_message_topic: "/sd_tractor/status"
-    send_ngsild_message_srv_name:  "/send_ngsild_message" 
+    robot_id: "eutrob:01"
 
-sdm_to_ros2:
-  ros__parameters:
-    state_message_topic: "/sd_tractor/status"
-    command_message_topic: "/sd_tractor/mission"
-    convert_sdm_to_ros2_srv_name:  "/sdm_to_ros2" 
+# sdm_to_ros2:
+  # ros__parameters:

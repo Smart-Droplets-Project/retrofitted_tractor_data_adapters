@@ -16,25 +16,17 @@ class SDMToROS2(Node):
     def __init__(self):
         super().__init__('sdm_to_ros2')
 
-        self.declare_parameter('command_message_topic', '/command_message')
-        self.declare_parameter('state_message_topic', '/state_message')
-        self.declare_parameter('convert_sdm_to_ros2_srv_name', '/ngsild_to_ros2')
-
-        command_message_topic = self.get_parameter('command_message_topic').value
-        state_message_topic = self.get_parameter('state_message_topic').value
-        convert_sdm_to_ros2_srv_name = self.get_parameter('convert_sdm_to_ros2_srv_name').value
-
-        self.to_ros2_service = self.create_service(NGSILDFile, convert_sdm_to_ros2_srv_name, self.translate_to_ros2_callback)
+        self.to_ros2_service = self.create_service(NGSILDFile, "/sdm_to_ros2", self.translate_to_ros2_callback)
 
         self.command_message_publisher = self.create_publisher(
             CommandMessage,
-            command_message_topic,
+            "/sd_tractor/mission",
             10
         )  
 
         self.state_message_publisher = self.create_publisher(
             StateMessage,
-            state_message_topic,
+            "/sd_tractor/status",
             10
         )  
 

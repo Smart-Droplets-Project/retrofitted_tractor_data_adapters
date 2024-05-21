@@ -31,15 +31,12 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/GeographicPose.msg"
   "msg/StateMessage.msg"
   "msg/CommandMessage.msg"
-  "srv/NGSILDFile.srv"
   DEPENDENCIES builtin_interfaces geometry_msgs geographic_msgs std_msgs 
  )
 
 # Python executables
 set(PYTHON_EXECUTABLES
-    src/ros2_ngsild_client.py
-    src/ros2_to_sdm.py
-    src/sdm_to_ros2.py
+    src/ngsild_to_ros2_client.py
 )
 
 # Install Python executables

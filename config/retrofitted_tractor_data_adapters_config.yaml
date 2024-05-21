@@ -1,9 +1,8 @@
-# ros2_ngsild_client:
-  # ros__parameters:
-
-ros2_to_sdm:
-  ros__parameters:
-    robot_id: "eutrob:01"
-
-# sdm_to_ros2:
-  # ros__parameters:
+ngsild_to_ros2_client:
+    ros__parameters:
+      client: 
+        host: "localhost"
+        port: 1026
+      subscription:
+        frequency: 2.0
+        list: "CommandMessage:9ead8385-80b2-4299-a5b2-81bc6c89be24-id"

@@ -1,4 +1,0 @@
-string message_type
-string file_path
----
-bool success

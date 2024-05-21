@@ -3,29 +3,9 @@
 <launch>
 
   <arg name="config_file"            default="$(find-pkg-share retrofitted_tractor_data_adapters)/config/retrofitted_tractor_data_adapters_config.yaml"/>
-  <arg name="tractor_status_topic"   default="/sd_tractor/status"/>
-  <arg name="send_message_srv"       default="/send_ngsild_message"/>
-  <arg name="sdm_to_ros2_srv"        default="/sdm_to_ros2"/>
-  <arg name="tractor_mission_topic"  default="/sd_tractor/mission"/>
 
-  <node pkg="retrofitted_tractor_data_adapters" exec="ros2_ngsild_client" name="ros2_ngsild_client" output="screen" respawn="True">
+  <node pkg="retrofitted_tractor_data_adapters" exec="ngsild_to_ros2_client" name="ngsild_to_ros2_client" output="screen" respawn="True">
     <param from="$(var config_file)"/>
-    <remap from="/sd_tractor/status"    to="$(var tractor_status_topic)"/>        
-    <remap from="/send_ngsild_message"  to="$(var send_message_srv)"/>
-    <remap from="/sdm_to_ros2"          to="$(var sdm_to_ros2_srv)"/>
-  </node>
-
-  <node pkg="retrofitted_tractor_data_adapters" exec="ros2_to_sdm" name="ros2_to_sdm" output="screen" respawn="True">
-    <param from="$(var config_file)"/>
-    <remap from="/sd_tractor/status"    to="$(var tractor_status_topic)"/>        
-    <remap from="/send_ngsild_message"  to="$(var send_message_srv)"/>
-  </node>
-
-  <node pkg="retrofitted_tractor_data_adapters" exec="sdm_to_ros2" name="sdm_to_ros2" output="screen" respawn="True">
-    <param from="$(var config_file)"/>
-    <remap from="/sd_tractor/status"    to="$(var tractor_status_topic)"/>        
-    <remap from="/sd_tractor/mission"   to="$(var tractor_mission_topic)"/>
-    <remap from="/sdm_to_ros2"          to="$(var sdm_to_ros2_srv)"/>
   </node>
 
 </launch>

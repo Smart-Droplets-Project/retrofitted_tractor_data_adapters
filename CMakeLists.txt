@@ -37,6 +37,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
 # Python executables
 set(PYTHON_EXECUTABLES
     src/ngsild_to_ros2_client.py
+    src/ros2_to_ngsild_client.py
 )
 
 # Install Python executables

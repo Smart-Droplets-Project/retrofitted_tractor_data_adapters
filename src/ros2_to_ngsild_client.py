@@ -6,7 +6,7 @@ from rclpy.node import Node
 from geographic_msgs.msg import GeoPath, GeoPoseStamped, GeoPoint
 from geometry_msgs.msg import Pose, Quaternion
 from std_msgs.msg import Float64
-from transforms3d.euler import euler2quat
+from transforms3d.euler import euler2quat, quat2euler
 
 from ngsildclient import Entity, Client, SubscriptionBuilder, SmartDataModels
 
@@ -56,15 +56,20 @@ class ROS2ToNGSILDClient(Node):
 
     def send_state_message(self, ros2_state_message):
         model = models.autonomous_mobile_robot.StateMessage(self.state_message_id)
+        for accuracy in ros2_state_message.accuracy:
+            model.accuracy.append(accuracy)
+        roll, pitch, yaw = quat2euler([ros2_state_message.destination.orientation_3d.w, ros2_state_message.destination.orientation_3d.x ,ros2_state_message.destination.orientation_3d.y, ros2_state_message.destination.orientation_3d.z])
+        model.destination = {"geographicPoint": {"latitude": ros2_state_message.destination.geographic_point.latitude,"longitude": ros2_state_message.destination.geographic_point.longitude,"altitude": 0.0},"orientation3D": {"roll": roll,"pitch": pitch,"yaw": yaw}}
         model.battery = ros2_state_message.battery
         model.commandTime = ros2_state_message.command_time
         model.mode = ros2_state_message.mode
+        roll, pitch, yaw = quat2euler([ros2_state_message.pose.orientation_3d.w, ros2_state_message.pose.orientation_3d.x ,ros2_state_message.pose.orientation_3d.y, ros2_state_message.pose.orientation_3d.z])
+        model.pose = {"geographicPoint": {"latitude": ros2_state_message.pose.geographic_point.latitude,"longitude": ros2_state_message.pose.geographic_point.longitude,"altitude": 0.0},"orientation3D": {"roll": roll,"pitch": pitch,"yaw": yaw}}
         try:
             update(model) 
         except:
             upload(model)
         self.get_logger().info('[ROS2_TO_NGSILD_CLIENT] Uploaded state message')
-
 
 def main():
     rclpy.init()

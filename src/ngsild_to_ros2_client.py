@@ -85,8 +85,6 @@ class NGSILDToROS2Client(Node):
             ros2_command_message.waypoints.append(ros2_waypoint)
         self.command_message_pub.publish(ros2_command_message)
 
-
-
 def main():
     rclpy.init()
     node = NGSILDToROS2Client()

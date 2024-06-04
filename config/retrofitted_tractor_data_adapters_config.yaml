@@ -16,3 +16,11 @@ ros2_to_ngsild_client:
         frequency: 2.0
         state_message:
           id: "StateMessage:9ead8385-80b2-4299-a5b2-81bc6c89be24-id"
+
+ocb_communication_reporter:
+    ros__parameters:
+      client: 
+        host: "localhost"
+        port: 1026
+      check:
+        frequency: 5.0

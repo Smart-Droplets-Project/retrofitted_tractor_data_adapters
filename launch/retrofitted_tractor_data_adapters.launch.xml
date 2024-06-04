@@ -2,10 +2,11 @@
 
 <launch>
 
-  <arg name="config_file"            default="$(find-pkg-share retrofitted_tractor_data_adapters)/config/retrofitted_tractor_data_adapters_config.yaml"/>
+  <arg name="config_file"                   default="$(find-pkg-share retrofitted_tractor_data_adapters)/config/retrofitted_tractor_data_adapters_config.yaml"/>
 
-  <arg name="command_message_topic"  default="/smart_droplets/command_message"/>
-  <arg name="state_message_topic"    default="/smart_droplets/state_message"/>
+  <arg name="command_message_topic"         default="/smart_droplets/command_message"/>
+  <arg name="state_message_topic"           default="/smart_droplets/state_message"/>
+  <arg name="communication_report_topic"    default="/ocb_comm/is_alive"/>
 
   <node pkg="retrofitted_tractor_data_adapters" exec="ngsild_to_ros2_client" name="ngsild_to_ros2_client" output="screen" respawn="True">
     <param from="$(var config_file)"/>
@@ -15,6 +16,11 @@
   <node pkg="retrofitted_tractor_data_adapters" exec="ros2_to_ngsild_client" name="ros2_to_ngsild_client" output="screen" respawn="True">
     <param from="$(var config_file)"/>
     <remap from="/state_message" to="$(var state_message_topic)"/>
+  </node>
+
+  <node pkg="retrofitted_tractor_data_adapters" exec="ocb_communication_reporter" name="ocb_communication_reporter" output="screen" respawn="True">
+    <param from="$(var config_file)"/>
+    <remap from="/ocb_communication" to="$(var communication_report_topic)"/>
   </node>
 
 </launch>

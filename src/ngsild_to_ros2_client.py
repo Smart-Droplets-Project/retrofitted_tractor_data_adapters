@@ -27,9 +27,12 @@ class NGSILDToROS2Client(Node):
         self.declare_parameter('client.port', 1026)
         host = self.get_parameter('client.host').value
         port = self.get_parameter('client.port').value
+
+        self.get_logger().info(f'Client host: {host}')
+        self.get_logger().info(f'Client port: {port}')
     
         self.declare_parameter('subscription.list', '')
-        subscription_list_param = self.get_parameter('subscription.list').get_parameter_value().string_value
+        subscription_list_param = self.get_parameter('subscription.list').value
         if subscription_list_param:
             self.subscription_list = subscription_list_param.split(',')
         else:
@@ -56,10 +59,10 @@ class NGSILDToROS2Client(Node):
             try: 
               self.model_to_ros2(get_by_id(id))
             except: 
-              self.get_logger().info(f'No model found with id {id}')
+              self.get_logger().debug(f'No model found with id {id}')
 
     def model_to_ros2(self, model):
-        if (model.type == 'CommandMessage'):
+        if model.type.strip() == 'CommandMessage':
             self.parse_command_message(model)
 
     def parse_command_message(self, command_message):
@@ -75,14 +78,10 @@ class NGSILDToROS2Client(Node):
             ros2_geographic_point.longitude = float(waypoint['geographicPoint']['longitude'])
             ros2_geographic_point.altitude = float(waypoint['geographicPoint']['altitude'])
             ros2_waypoint.geographic_point = ros2_geographic_point
-            q = euler2quat(float(waypoint['orientation3D']['roll']), float(waypoint['orientation3D']['pitch']), float(waypoint['orientation3D']['yaw']))
             ros2_quaternion = Quaternion()
-            ros2_quaternion.x = q[1]
-            ros2_quaternion.y = q[2]
-            ros2_quaternion.z = q[3]
-            ros2_quaternion.w = q[0]
             ros2_waypoint.orientation_3d = ros2_quaternion
             ros2_command_message.waypoints.append(ros2_waypoint)
+
         self.command_message_pub.publish(ros2_command_message)
 
 def main():

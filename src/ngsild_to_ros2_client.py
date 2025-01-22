@@ -51,7 +51,9 @@ class NGSILDToROS2Client(Node):
         # Set up Context Broker Client
         DAClient.get_instance(host, port)
 
-        # Initialized variables
+        # Initialize variables
+        self.last_command_time = ""
+
         self.get_logger().info('[NGSILD_ROS2_CLIENT] Initialized')
 
     def entity_get_callback(self):
@@ -70,6 +72,10 @@ class NGSILDToROS2Client(Node):
         ros2_command_message.header.stamp = self.get_clock().now().to_msg()
         ros2_command_message.command = command_message.command
         ros2_command_message.command_time = command_message.commandTime
+        if ros2_command_message.command_time == self.last_command_time:
+            self.get_logger().debug(f'Command message already processed with stamp {ros2_command_message.command_time}')
+            return
+        self.last_command_time = ros2_command_message.command_time
         ros2_command_message.type = command_message.type
         for waypoint in command_message.waypoints:
             ros2_waypoint = GeographicPose()

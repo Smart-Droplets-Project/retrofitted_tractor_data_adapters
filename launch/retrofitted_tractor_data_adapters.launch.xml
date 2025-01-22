@@ -13,14 +13,14 @@
     <remap from="/command_message" to="$(var command_message_topic)"/>
   </node>
 
-  <!-- <node pkg="retrofitted_tractor_data_adapters" exec="ros2_to_ngsild_client" name="ros2_to_ngsild_client" output="screen" respawn="True">
+  <node pkg="retrofitted_tractor_data_adapters" exec="ros2_to_ngsild_client" name="ros2_to_ngsild_client" output="screen" respawn="True">
     <param from="$(var config_file)"/>
     <remap from="/state_message" to="$(var state_message_topic)"/>
-  </node> -->
+  </node>
 
-  <!-- <node pkg="retrofitted_tractor_data_adapters" exec="ocb_communication_reporter" name="ocb_communication_reporter" output="screen" respawn="True">
+  <node pkg="retrofitted_tractor_data_adapters" exec="ocb_communication_reporter" name="ocb_communication_reporter" output="screen" respawn="True">
     <param from="$(var config_file)"/>
     <remap from="/ocb_communication" to="$(var communication_report_topic)"/>
-  </node> -->
+  </node>
 
 </launch>

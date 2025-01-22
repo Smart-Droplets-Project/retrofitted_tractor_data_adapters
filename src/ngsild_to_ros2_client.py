@@ -17,6 +17,11 @@ import sd_data_adapter.models as models
 from sd_data_adapter.client import DAClient
 from sd_data_adapter.api import upload, get_by_id
 
+import logging
+
+logging.getLogger('ngsildclient.api.exceptions').setLevel(logging.WARNING)
+logging.getLogger('ngsildclient.api.entities').setLevel(logging.WARNING)
+
 class NGSILDToROS2Client(Node):
        
     def __init__(self):

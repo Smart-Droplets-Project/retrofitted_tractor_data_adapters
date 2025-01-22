@@ -16,6 +16,12 @@ import datetime
 import sd_data_adapter.models as models
 from sd_data_adapter.client import DAClient
 from sd_data_adapter.api import upload, get_by_id, update
+from smart_droplets_msgs.msg import TractorStatus
+
+import logging
+
+logging.getLogger('ngsildclient.api.exceptions').setLevel(logging.WARNING)
+logging.getLogger('ngsildclient.api.entities').setLevel(logging.WARNING)
 
 class ROS2ToNGSILDClient(Node):
        
@@ -35,7 +41,8 @@ class ROS2ToNGSILDClient(Node):
         self.state_message_id = self.get_parameter('publishment.state_message.id').value
         
         # Create ROS publishers and subscribers
-        self.state_message_sub = self.create_subscription(StateMessage,'/state_message',self.state_message_callback,10)
+        self.tractor_status_message_sub = self.create_subscription(TractorStatus,'/tractor_status',self.tractor_status_message_callback,10)
+        self.state_message_pub = self.create_publisher(StateMessage, '/state_message', 10)
 
         # Create timer for Entity checking
         self.entity_update_timer = self.create_timer(1/publishment_freq, self.entity_update_callback)
@@ -44,14 +51,20 @@ class ROS2ToNGSILDClient(Node):
         DAClient.get_instance(host, port)
 
         self.state_message_ = StateMessage()
+        self.state_message_.type = "StateMessage"
 
         # Initialized variables
         self.get_logger().info('[ROS2_TO_NGSILD_CLIENT] Initialized')
 
-    def state_message_callback(self, msg):
-        self.state_message_ = msg
+    def tractor_status_message_callback(self, msg):
+        self.transform_status_message(msg)
+
+    def transform_status_message(self, msg):
+        self.state_message_.header = msg.header       
+        self.state_message_.command_time = datetime.datetime.now().isoformat()
 
     def entity_update_callback(self):
+        self.state_message_pub.publish(self.state_message_)
         self.send_state_message(self.state_message_)
 
     def send_state_message(self, ros2_state_message):
@@ -63,13 +76,15 @@ class ROS2ToNGSILDClient(Node):
         model.battery = ros2_state_message.battery
         model.commandTime = ros2_state_message.command_time
         model.mode = ros2_state_message.mode
+        model.type = ros2_state_message.type
         roll, pitch, yaw = quat2euler([ros2_state_message.pose.orientation_3d.w, ros2_state_message.pose.orientation_3d.x ,ros2_state_message.pose.orientation_3d.y, ros2_state_message.pose.orientation_3d.z])
         model.pose = {"geographicPoint": {"latitude": ros2_state_message.pose.geographic_point.latitude,"longitude": ros2_state_message.pose.geographic_point.longitude,"altitude": 0.0},"orientation3D": {"roll": roll,"pitch": pitch,"yaw": yaw}}
         try:
-            update(model) 
+            upload(model) 
+            self.get_logger().debug('[ROS2_TO_NGSILD_CLIENT] Uploaded state message')
         except:
-            upload(model)
-        self.get_logger().info('[ROS2_TO_NGSILD_CLIENT] Uploaded state message')
+            update(model)
+            self.get_logger().debug('[ROS2_TO_NGSILD_CLIENT] Updated state message')
 
 def main():
     rclpy.init()

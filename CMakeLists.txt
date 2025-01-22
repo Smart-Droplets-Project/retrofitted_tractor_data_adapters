@@ -22,6 +22,7 @@ find_package(geometry_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(nav2_msgs REQUIRED)
 find_package(nav_msgs REQUIRED)
+find_package(smart_droplets_msgs REQUIRED)
 find_package(geographic_msgs REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(builtin_interfaces REQUIRED)
@@ -31,7 +32,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/GeographicPose.msg"
   "msg/StateMessage.msg"
   "msg/CommandMessage.msg"
-  DEPENDENCIES builtin_interfaces geometry_msgs geographic_msgs std_msgs 
+  DEPENDENCIES builtin_interfaces geometry_msgs geographic_msgs std_msgs
  )
 
 # Python executables

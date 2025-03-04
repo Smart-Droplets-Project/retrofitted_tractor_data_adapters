@@ -6,6 +6,7 @@ from rclpy.node import Node
 from geographic_msgs.msg import GeoPath, GeoPoseStamped, GeoPoint
 from geometry_msgs.msg import Pose, Quaternion
 from std_msgs.msg import Float64
+from sensor_msgs.msg import NavSatFix
 from transforms3d.euler import euler2quat, quat2euler
 
 from ngsildclient import Entity, Client, SubscriptionBuilder, SmartDataModels
@@ -41,6 +42,7 @@ class ROS2ToNGSILDClient(Node):
         self.state_message_id = self.get_parameter('publishment.state_message.id').value
         
         # Create ROS publishers and subscribers
+        self.gnss_sub = self.create_subscription(NavSatFix, '/gnss_topic', self.gnss_callback, 10)
         self.tractor_status_message_sub = self.create_subscription(TractorStatus,'/tractor_status',self.tractor_status_message_callback,10)
         self.state_message_pub = self.create_publisher(StateMessage, '/state_message', 10)
 
@@ -58,6 +60,11 @@ class ROS2ToNGSILDClient(Node):
 
     def tractor_status_message_callback(self, msg):
         self.transform_status_message(msg)
+        
+    def gnss_callback(self, msg):
+        self.state_message_.pose.geographic_point.latitude = msg.latitude
+        self.state_message_.pose.geographic_point.longitude = msg.longitude
+        self.state_message_.pose.geographic_point.altitude = 0.0
 
     def transform_status_message(self, msg):
         self.state_message_.header = msg.header       

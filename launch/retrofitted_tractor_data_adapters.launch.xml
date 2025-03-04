@@ -7,6 +7,7 @@
   <arg name="tractor_status_topic"          default="/smart_droplets_tractor/status"/>
   <arg name="command_message_topic"         default="/smart_droplets/command_message"/>
   <arg name="state_message_topic"           default="/smart_droplets/state_message"/>
+  <arg name="gnss_topic"                    default="smart_droplets_tractor/agcbox/gnss/wgs84_fix"/>
   <arg name="communication_report_topic"    default="/ocb_comm/is_alive"/>
 
   <node pkg="retrofitted_tractor_data_adapters" exec="ngsild_to_ros2_client" name="ngsild_to_ros2_client" output="log" respawn="True">
@@ -17,6 +18,7 @@
   <node pkg="retrofitted_tractor_data_adapters" exec="ros2_to_ngsild_client" name="ros2_to_ngsild_client" output="log" respawn="True">
     <param from="$(var config_file)"/>
     <remap from="/state_message"  to="$(var state_message_topic)"/>
+    <remap from="/gnss_topic"     to="$(var gnss_topic)"/>
     <remap from="/tractor_status" to="$(var tractor_status_topic)"/>
   </node>
 
